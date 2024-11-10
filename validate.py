@@ -289,24 +289,35 @@ if __name__ == '__main__':
 
 
 
-    for dataset_path in (dataset_paths):
+    for dataset_path in dataset_paths:
         set_seed()
 
-        dataset = RealFakeDataset(  dataset_path['real_path'], 
-                                    dataset_path['fake_path'], 
-                                    dataset_path['data_mode'], 
-                                    opt.max_sample, 
-                                    opt.arch,
-                                    jpeg_quality=opt.jpeg_quality, 
-                                    gaussian_sigma=opt.gaussian_sigma,
-                                    )
+        dataset = RealFakeDataset(
+            dataset_path['real_path'], 
+            dataset_path['fake_path'], 
+            dataset_path['data_mode'], 
+            opt.max_sample, 
+            opt.arch,
+            jpeg_quality=opt.jpeg_quality, 
+            gaussian_sigma=opt.gaussian_sigma,
+        )
 
         loader = torch.utils.data.DataLoader(dataset, batch_size=opt.batch_size, shuffle=False, num_workers=4)
         ap, r_acc0, f_acc0, acc0, r_acc1, f_acc1, acc1, best_thres = validate(model, loader, find_thres=True)
 
-        with open( os.path.join(opt.result_folder,'ap.txt'), 'a') as f:
-            f.write(dataset_path['key']+': ' + str(round(ap*100, 2))+'\n' )
+        # 打印并保存 ap
+        ap_rounded = ap * 100
+        print(f"AP for {dataset_path['key']}: {ap_rounded:.2f}")
+        with open(os.path.join(opt.result_folder, 'ap.txt'), 'a') as f:
+            f.write(f"{dataset_path['key']}: {ap_rounded:.2f}\n")
 
-        with open( os.path.join(opt.result_folder,'acc0.txt'), 'a') as f:
-            f.write(dataset_path['key']+': ' + str(round(r_acc0*100, 2))+'  '+str(round(f_acc0*100, 2))+'  '+str(round(acc0*100, 2))+'\n' )
+        # 打印并保存 acc0
+        r_acc0_rounded = r_acc0 * 100
+        f_acc0_rounded = f_acc0 * 100
+        acc0_rounded = acc0 * 100
+        print(f"Acc0 for {dataset_path['key']}: R_acc0={r_acc0_rounded:.2f}, F_acc0={f_acc0_rounded:.2f}, Acc0={acc0_rounded:.2f}")
+        with open(os.path.join(opt.result_folder, 'acc0.txt'), 'a') as f:
+            f.write(f"{dataset_path['key']}: {r_acc0_rounded:.2f}  {f_acc0_rounded:.2f}  {acc0_rounded:.2f}\n")
+
+
 
