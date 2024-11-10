@@ -100,8 +100,8 @@ def dataset_folder(opt, root_path):
         rz_func = transforms.Lambda(lambda img: translate_duplicate(img, opt.cropSize))
     else:
         # rz_func = transforms.Lambda(lambda img: custom_resize(img, opt))
-        # rz_func = transforms.Resize((opt.loadSize, opt.loadSize))
-        rz_func = transforms.Resize(opt.loadSize)
+        rz_func = transforms.Resize((opt.loadSize, opt.loadSize))
+        # rz_func = transforms.Resize(opt.loadSize)
 
     # dset = datasets.ImageFolder(
     #         root,
