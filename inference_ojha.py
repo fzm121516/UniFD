@@ -31,6 +31,11 @@ from dataset_paths import DATASET_PATHS
 import random
 import shutil
 from scipy.ndimage.filters import gaussian_filter
+import os
+import matplotlib.pyplot as plt
+
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def seed_torch(seed=1029):  # 设置随机种子以保证结果可重复
     random.seed(seed)  # 设置Python随机数种子
@@ -58,13 +63,13 @@ def parse_args():  # 定义解析命令行参数的函数
     parser.add_argument('--cropSize', type=int, default=224)  # 添加裁剪尺寸参数
     # parser.add_argument('--batch_size', type=int, default=64)  # 添加批次大小参数
     parser.add_argument('--shuffle', action='store_true', default=False)
-    parser.add_argument('--dataroot1', type=str, default='/home/fanzheming/zm/NPR-DeepfakeDetection/dataset/ForenSynths8test/ForenSynths')  # 添加数据根路径参数
-    parser.add_argument('--dataroot2', type=str, default='/home/fanzheming/zm/NPR-DeepfakeDetection/dataset/GANGen-Detection')  # 添加数据根路径参数
-    parser.add_argument('--dataroot3', type=str, default='/home/fanzheming/zm/NPR-DeepfakeDetection/dataset/DiffusionForensics8test/DiffusionForensics')  # 添加数据根路径参数
-    parser.add_argument('--dataroot4', type=str, default='/home/fanzheming/zm/NPR-DeepfakeDetection/dataset/UniversalFakeDetect')  # 添加数据根路径参数
-    parser.add_argument('--dataroot5', type=str, default='/home/fanzheming/zm/NPR-DeepfakeDetection/dataset/Diffusion1kStep')  # 添加数据根路径参数
+    parser.add_argument('--dataroot1', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/ForenSynths8test/ForenSynths')  # 添加数据根路径参数
+    parser.add_argument('--dataroot2', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/GANGen-Detection')  # 添加数据根路径参数
+    parser.add_argument('--dataroot3', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/DiffusionForensics8test/DiffusionForensics')  # 添加数据根路径参数
+    parser.add_argument('--dataroot4', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/UniversalFakeDetect')  # 添加数据根路径参数
+    parser.add_argument('--dataroot5', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/Diffusion1kStep')  # 添加数据根路径参数
     parser.add_argument('--model_name', type=str, default='ViT-L/14')  # 添加模型名称
-    parser.add_argument('--model_path', type=str, default='/home/fanzheming/zm/Ojha/pretrained_weights/fc_weights.pth')  # 添加模型路径参数
+    parser.add_argument('--model_path', type=str, default='/home/ubuntu/zm/Ojha/pretrained_weights/fc_weights.pth')  # 添加模型路径参数
     parser.add_argument('--real_path', type=str, default=None, help='dir name or a pickle')
     parser.add_argument('--fake_path', type=str, default=None, help='dir name or a pickle')
     parser.add_argument('--data_mode', type=str, default=None, help='wang2020 or ours')
@@ -103,16 +108,16 @@ if __name__ == '__main__':  # 主程序入口
             'no_resize': False,  # 是否不调整大小
             'no_crop': False,  # 是否不裁剪
         },
-        'GANGen-Detection': {  # 测试集名称
-            'dataroot': opt.dataroot2,  # 数据根路径
-            'no_resize': False,  # 是否不调整大小
-            'no_crop': False,  # 是否不裁剪
-        },        
-        'DiffusionForensics': {  # 测试集名称
-            'dataroot': opt.dataroot3,  # 数据根路径
-            'no_resize': False,  # 是否不调整大小
-            'no_crop': False,  # 是否不裁剪
-        },        
+        # 'GANGen-Detection': {  # 测试集名称
+        #     'dataroot': opt.dataroot2,  # 数据根路径
+        #     'no_resize': False,  # 是否不调整大小
+        #     'no_crop': False,  # 是否不裁剪
+        # },        
+        # 'DiffusionForensics': {  # 测试集名称
+        #     'dataroot': opt.dataroot3,  # 数据根路径
+        #     'no_resize': False,  # 是否不调整大小
+        #     'no_crop': False,  # 是否不裁剪
+        # },        
         'UniversalFakeDetect': {  # 测试集名称
             'dataroot': opt.dataroot4,  # 数据根路径
             'no_resize': False,  # 是否不调整大小
@@ -151,48 +156,90 @@ if __name__ == '__main__':  # 主程序入口
     model.eval()  # 设置模型为评估模式
 
 
-    for testSet in DetectionTests.keys():  # 遍历测试集
-        dataroot = DetectionTests[testSet]['dataroot']  # 获取数据根路径
-        printSet(testSet)  # 打印测试集名称
-        accs = []  # 初始化准确率列表
-        aps = []  # 初始化平均精度列表
-        r_accs = []  # 初始化真实负类准确率列表
-        f_accs = []  # 初始化真实正类准确率列表
-        print(time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()))  # 打印当前时间
+    for testSet in DetectionTests.keys():
+        dataroot = DetectionTests[testSet]['dataroot']
+        printSet(testSet)
+        accs = []
+        aps = []
+        r_accs = []
+        f_accs = []
+        print(time.strftime("%Y_%m_%d_%H_%M_%S", time.localtime()))
+        
+        # 创建保存目录
+        os.makedirs('./logitspace', exist_ok=True)
 
-
-        # files = os.listdir(dataroot)
-        # for v_id, val in enumerate(tqdm(files, desc="Evaluating files")):
-        for v_id, val in enumerate(os.listdir(dataroot)):  # 遍历数据根路径下的所有文件
-            opt.dataroot = '{}/{}'.format(dataroot, val)  # 更新数据根路径
-            opt.classes = ''  # 设置类别（此处为空字符串）
-            opt.no_resize = DetectionTests[testSet]['no_resize']  # 获取是否不调整大小的参数
-            opt.no_crop = DetectionTests[testSet]['no_crop']  # 获取是否不裁剪的参数
-            data_loader = create_dataloader(opt)  # 创建数据加载器
-            with torch.no_grad():  # 禁用梯度计算
-                y_true, y_pred = [], []  # 初始化真实标签和预测值列表
+        for v_id, val in enumerate(os.listdir(dataroot)):
+            opt.dataroot = f'{dataroot}/{val}'
+            opt.classes = ''
+            opt.no_resize = DetectionTests[testSet]['no_resize']
+            opt.no_crop = DetectionTests[testSet]['no_crop']
+            data_loader = create_dataloader(opt)
+            
+            with torch.no_grad():
+                y_true, y_pred, logits_list = [], [], []  # 新增logits_list保存原始logits
                 for img, label, path in tqdm(data_loader, desc=f"Processing {val}", leave=False):
-                # for img, label, path in data_loader:  # 遍历数据加载器
-                    y_pred.extend(model(img.cuda()).sigmoid().flatten().tolist())  # 获取预测值并添加到列表
-                    y_true.extend(label.flatten().tolist())  # 获取真实标签并添加到列表
-            y_true, y_pred = np.array(y_true), np.array(y_pred)  # 转换为NumPy数组
+                    # 前向传播获取原始logits
+                    logits = model(img.cuda()).flatten()
+                    
+                    # 保存原始logits和sigmoid后的概率
+                    logits_list.extend(logits.cpu().tolist())
+                    y_pred.extend(logits.sigmoid().cpu().tolist())  # 保持原有概率计算
+                    y_true.extend(label.flatten().tolist())
+
+            # 转换为numpy数组
+            y_true = np.array(y_true)
+            y_pred = np.array(y_pred)
+            logits_array = np.array(logits_list)
+
+            # 绘制logit分布直方图
+            plt.figure(figsize=(6, 6))
+            plt.hist(logits_array[y_true == 0], 
+                    bins=1000, 
+                    alpha=0.5, 
+                    color='blue', 
+                    label='Real Images',
+                    # density=True
+                    )  # 添加归一化
+            
+            plt.hist(logits_array[y_true == 1], 
+                    bins=1000, 
+                    alpha=0.5, 
+                    color='red', 
+                    label='Synthetic Images',
+                    # density=True
+                    )
+                      # 添加归一化
+            
+            plt.xlabel('Logits')
+            plt.ylabel('Frequency')
+            plt.title(f'Logit Distribution - {val}')
+            plt.legend(loc='upper center', frameon=True, fontsize=10)
+            
+            # 保存图片
+            plt.savefig(f'./logitspace/{val}.png', bbox_inches='tight', dpi=300)
+            plt.savefig(f'./logitspace/{val}.svg', bbox_inches='tight')
+            plt.close()
+
+            # 原有评估指标计算（保持不变）
             num_negative = np.sum(y_true == 0)
             num_positive = np.sum(y_true == 1)
-            print("File: {:12} - Negative: {}, Positive: {}".format(val, num_negative, num_positive))  # 打印当前文件的真实负类和正类数量
-            r_acc = accuracy_score(y_true[y_true == 0], y_pred[y_true == 0] > 0.5)  # 计算真实负类的准确率
-            f_acc = accuracy_score(y_true[y_true == 1], y_pred[y_true == 1] > 0.5)  # 计算真实正类的准确率
-            acc = accuracy_score(y_true, y_pred > 0.5)  # 计算总体准确率
-            ap = average_precision_score(y_true, y_pred)  # 计算平均精度
-            r_accs.append(r_acc)  # 添加真实负类准确率到列表
-            f_accs.append(f_acc)  # 添加真实正类准确率到列表
+            print(f"File: {val:12} - Negative: {num_negative}, Positive: {num_positive}")
 
-            accs.append(acc)  # 添加准确率到列表
-            aps.append(ap)  # 添加平均精度到列表
-            print("({} {:12}) acc: {:.2f}; ap: {:.2f}; r_acc: {:.2f}; f_acc: {:.2f}".format(
-            v_id, val, acc * 100, ap * 100, r_acc * 100, f_acc * 100))  # 打印当前文件的准确率和平均精度
+            r_acc = accuracy_score(y_true[y_true == 0], y_pred[y_true == 0] > 0.5)
+            f_acc = accuracy_score(y_true[y_true == 1], y_pred[y_true == 1] > 0.5)
+            acc = accuracy_score(y_true, y_pred > 0.5)
+            ap = average_precision_score(y_true, y_pred)
 
-        print("({} {:10}) acc: {:.2f}; ap: {:.2f}; r_acc: {:.2f}; f_acc: {:.2f}".format(
-        v_id + 1, 'Mean', np.array(accs).mean() * 100, np.array(aps).mean() * 100, 
-        np.array(r_accs).mean() * 100, np.array(f_accs).mean() * 100))  # 打印均值
-        print('*' * 25)  # 打印分隔线
+            r_accs.append(r_acc)
+            f_accs.append(f_acc)
+            accs.append(acc)
+            aps.append(ap)
+
+            print(f"({v_id} {val:12}) acc: {acc*100:.2f}; ap: {ap*100:.2f}; "
+                f"r_acc: {r_acc*100:.2f}; f_acc: {f_acc*100:.2f}")
+
+        print(f"({v_id+1} {'Mean':10}) acc: {np.mean(accs)*100:.2f}; "
+            f"ap: {np.mean(aps)*100:.2f}; r_acc: {np.mean(r_accs)*100:.2f}; "
+            f"f_acc: {np.mean(f_accs)*100:.2f}")
+        print('*' * 25)
 
