@@ -68,6 +68,7 @@ def parse_args():  # 定义解析命令行参数的函数
     parser.add_argument('--dataroot3', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/DiffusionForensics8test/DiffusionForensics')  # 添加数据根路径参数
     parser.add_argument('--dataroot4', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/UniversalFakeDetect')  # 添加数据根路径参数
     parser.add_argument('--dataroot5', type=str, default='/home/ubuntu/zm/NPR-DeepfakeDetection/dataset/Diffusion1kStep')  # 添加数据根路径参数
+    parser.add_argument('--dataroot6', type=str, default='/home/ubuntu/genimagestest/test')  # 添加数据根路径参数
     parser.add_argument('--model_name', type=str, default='ViT-L/14')  # 添加模型名称
     parser.add_argument('--model_path', type=str, default='/home/ubuntu/zm/Ojha/pretrained_weights/fc_weights.pth')  # 添加模型路径参数
     parser.add_argument('--real_path', type=str, default=None, help='dir name or a pickle')
@@ -103,31 +104,37 @@ def parse_args():  # 定义解析命令行参数的函数
 if __name__ == '__main__':  # 主程序入口
     opt = parse_args()  # 解析命令行参数
     DetectionTests = {  # 定义检测测试集信息
-        'ForenSynths': {  # 测试集名称
-            'dataroot': opt.dataroot1,  # 数据根路径
+        
+                'genimages': {  # 测试集名称
+            'dataroot': opt.dataroot6,  # 数据根路径
             'no_resize': False,  # 是否不调整大小
-            'no_crop': False,  # 是否不裁剪
-        },
-        # 'GANGen-Detection': {  # 测试集名称
-        #     'dataroot': opt.dataroot2,  # 数据根路径
+            'no_crop': False , # 是否不裁剪
+        }, 
+        # 'ForenSynths': {  # 测试集名称
+        #     'dataroot': opt.dataroot1,  # 数据根路径
+        #     'no_resize': False,  # 是否不调整大小
+        #     'no_crop': False,  # 是否不裁剪
+        # },
+        # # 'GANGen-Detection': {  # 测试集名称
+        # #     'dataroot': opt.dataroot2,  # 数据根路径
+        # #     'no_resize': False,  # 是否不调整大小
+        # #     'no_crop': False,  # 是否不裁剪
+        # # },        
+        # # 'DiffusionForensics': {  # 测试集名称
+        # #     'dataroot': opt.dataroot3,  # 数据根路径
+        # #     'no_resize': False,  # 是否不调整大小
+        # #     'no_crop': False,  # 是否不裁剪
+        # # },        
+        # 'UniversalFakeDetect': {  # 测试集名称
+        #     'dataroot': opt.dataroot4,  # 数据根路径
         #     'no_resize': False,  # 是否不调整大小
         #     'no_crop': False,  # 是否不裁剪
         # },        
-        # 'DiffusionForensics': {  # 测试集名称
-        #     'dataroot': opt.dataroot3,  # 数据根路径
+        # 'Diffusion1kStep': {  # 测试集名称
+        #     'dataroot': opt.dataroot5,  # 数据根路径
         #     'no_resize': False,  # 是否不调整大小
         #     'no_crop': False,  # 是否不裁剪
-        # },        
-        'UniversalFakeDetect': {  # 测试集名称
-            'dataroot': opt.dataroot4,  # 数据根路径
-            'no_resize': False,  # 是否不调整大小
-            'no_crop': False,  # 是否不裁剪
-        },        
-        'Diffusion1kStep': {  # 测试集名称
-            'dataroot': opt.dataroot5,  # 数据根路径
-            'no_resize': False,  # 是否不调整大小
-            'no_crop': False,  # 是否不裁剪
-        },
+        # },
     }
 
     # state_dict = torch.hub._legacy_zip_load('C2P_CLIP_release_20240901.zip', './', map_location="cpu", weights_only=False)  # 加载模型状态字典（旧方法）
@@ -194,21 +201,19 @@ if __name__ == '__main__':  # 主程序入口
             # 绘制logit分布直方图
             plt.figure(figsize=(6, 6))
             plt.hist(logits_array[y_true == 0], 
-                    bins=1000, 
+                    bins=200, 
                     alpha=0.5, 
                     color='blue', 
                     label='Real Images',
-                    # density=True
-                    )  # 添加归一化
+                    )  
             
             plt.hist(logits_array[y_true == 1], 
-                    bins=1000, 
+                    bins=200, 
                     alpha=0.5, 
                     color='red', 
                     label='Synthetic Images',
-                    # density=True
                     )
-                      # 添加归一化
+                     
             
             plt.xlabel('Logits')
             plt.ylabel('Frequency')
