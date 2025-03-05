@@ -105,11 +105,49 @@ if __name__ == '__main__':  # 主程序入口
     opt = parse_args()  # 解析命令行参数
     DetectionTests = {  # 定义检测测试集信息
         
-                'genimages': {  # 测试集名称
-            'dataroot': opt.dataroot6,  # 数据根路径
+
+
+                                        'foren95': {  # 测试集名称
+            'dataroot': '/home/ubuntu/jpeg/jpeg95/foren/test',  # 数据根路径
             'no_resize': False,  # 是否不调整大小
-            'no_crop': False , # 是否不裁剪
-        }, 
+            'no_crop': False,  # 是否不裁剪
+        },    
+
+                                'foren85': {  # 测试集名称
+            'dataroot': '/home/ubuntu/jpeg/jpeg85/foren/test',  # 数据根路径
+            'no_resize': False,  # 是否不调整大小
+            'no_crop': False,  # 是否不裁剪
+        },    
+                                'foren75': {  # 测试集名称
+            'dataroot': '/home/ubuntu/jpeg/jpeg75/foren/test',  # 数据根路径
+            'no_resize': False,  # 是否不调整大小
+            'no_crop': False,  # 是否不裁剪
+        },    
+
+
+                                        'unifd95': {  # 测试集名称
+            'dataroot': '/home/ubuntu/jpeg/jpeg95/unifd/test',  # 数据根路径
+            'no_resize': False,  # 是否不调整大小
+            'no_crop': False,  # 是否不裁剪
+        },  
+
+                                'unifd85': {  # 测试集名称
+            'dataroot': '/home/ubuntu/jpeg/jpeg85/unifd/test',  # 数据根路径
+            'no_resize': False,  # 是否不调整大小
+            'no_crop': False,  # 是否不裁剪
+        },    
+
+                        'unifd75': {  # 测试集名称
+            'dataroot': '/home/ubuntu/jpeg/jpeg75/unifd/test',  # 数据根路径
+            'no_resize': False,  # 是否不调整大小
+            'no_crop': False,  # 是否不裁剪
+        },   
+
+        #         'genimages': {  # 测试集名称
+        #     'dataroot': opt.dataroot6,  # 数据根路径
+        #     'no_resize': False,  # 是否不调整大小
+        #     'no_crop': False , # 是否不裁剪
+        # }, 
         # 'ForenSynths': {  # 测试集名称
         #     'dataroot': opt.dataroot1,  # 数据根路径
         #     'no_resize': False,  # 是否不调整大小

@@ -3,3 +3,6 @@ CUDA_VISIBLE_DEVICES=0 python3 validate.py --arch=CLIP:ViT-L/14  --ckpt=pretrain
 
 
 CUDA_VISIBLE_DEVICES=2 python3 inference_ojha.py
+
+
+CUDA_VISIBLE_DEVICES=1 python3 inference_ojha.py
